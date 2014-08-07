@@ -10,9 +10,8 @@ def index():
 
 @app.route('/analyze_songs/', methods=['POST'])
 def analyze_songs():
-    print('hello world')
     payload = request.json
-    with open('abc.json', 'w') as f:
+    with open('{0}.json'.format(payload['title']), 'w') as f:
         f.write(json.dumps(payload))
     return ''
 
@@ -23,4 +22,4 @@ def pics():
 
 
 if __name__ == '__main__':
-    app.run(host='192.168.0.10', debug=True)
+    app.run(debug=True)
