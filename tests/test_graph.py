@@ -20,3 +20,10 @@ def test_sub_space():
     r = b - a
     assert DiffSpace([1, 0.5, 0]) == r
     assert 0.5 == r.average
+
+
+def test_diff_sapce():
+    a = Space([1, 2, 3, 4])
+    b = Space([2, 3, 4])
+    r = b - a
+    assert DiffSpace([1, 0.5, 0]) == r
