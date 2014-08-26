@@ -1,7 +1,7 @@
 from math import ceil
 from itertools import groupby
 
-from numpy import polyfit
+from numpy import polyfit, linspace
 
 from .graph import Space
 
@@ -13,13 +13,21 @@ def diff(g1, g2):
     return dif.average
 
 
-def poly_reg(x, y, deg=2):
+def poly_reg(y, deg=2):
+    x = linspace(0, 1, len(y))
     return polyfit(x, y, deg=deg)
 
 
+def remove_zero(s):
+    for x in s:
+        if x != 0:
+            yield x
+
+
 def remove_lower(s, percent=5):
+    s = list(remove_zero(s))
     num_to_remove = ceil(len(s) * percent / 100)
-    histo = [(x, len(list(x))) for x in groupby(sorted(s))]
+    histo = [(x[0], len(list(x[1]))) for x in groupby(sorted(s))]
     histo = sorted(histo, key=lambda x: x[0])
     h = histo[:num_to_remove]
     i = 0

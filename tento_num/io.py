@@ -9,6 +9,9 @@ from soundfile import CheapMP3
 
 import matplotlib.pyplot as plt
 
+from .func import remove_lower
+from .graph import Space
+
 Point = namedtuple('Point', ['x', 'y'])
 
 def soft(frame):
@@ -55,9 +58,9 @@ def simple(frame):
     return l
 
 
-def mult_simple(frame, n, max_):
+def mult_simple(frame, n):
     i = 0
-    while i < n:
+    while i < len(frame):
         if len(frame) < n:
             break
         frame = simple(frame)
@@ -99,7 +102,7 @@ def read_music(path, filename, out_base_root):
     if payload is None:
         return None
     m = len(payload['frames'])
-    l = mult_simple(payload['frames'], 500, m)
+    l = remove_lower(mult_simple(payload['frames'], 500))
     x = linspace(0, payload['duration'] / 1000, len(l))
     x2 = linspace(0, payload['duration'] / 1000, len(payload['frames']))
     frames = array(l)
@@ -158,3 +161,11 @@ def dump_mp3(root, out, n=2):
                     to_json(p, mp3, out)
         if i == n:
             break
+
+
+def calculate_position(pos, mp3):
+    cheap = CheapMP3(mp3)
+    with cheap.read() as mp3:
+        gains = mp3.frame_gains
+    s = Space(gains)
+    s.init_pos(pos)
