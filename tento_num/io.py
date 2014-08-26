@@ -169,3 +169,4 @@ def calculate_position(pos, mp3):
         gains = mp3.frame_gains
     s = Space(gains)
     s.init_pos(pos)
+    print(s.position)

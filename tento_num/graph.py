@@ -2,6 +2,7 @@ import os
 import json
 
 from fractions import gcd
+from math import sqrt
 
 from soundfile import CheapMP3
 
@@ -11,6 +12,19 @@ class DiffSpace(list):
     @property
     def average(self):
         return sum(self) / len(self)
+
+
+    @property
+    def dispersion(self):
+        avg_pow = self.average ** 2
+        s = [x ** 2 for x in self]
+        powed_avg = sum(s) / len(s)
+        return powed_avg - avg_pow
+
+
+    @property
+    def standard_deviation(self):
+        return sqrt(self.dispersion)
 
 
 class Space(list):
@@ -31,7 +45,7 @@ class Space(list):
 
     def get(self, i):
         if i % self.interval == 0:
-            r = self[i]
+            r = self[int(i // self.interval)]
         else:
             front = int(i // self.interval)
             p1 = (front * self.interval, self[front])
@@ -59,8 +73,7 @@ class Space(list):
                         payload = json.loads(f.read())
                         for x in pos:
                             if p.startswith(x):
-                                s = mult_simple(remove_lower(payload['frames']),
-                                                100)
+                                s = remove_lower(payload['frames'])
                                 setattr(
                                     self,
                                     x,
@@ -79,16 +92,29 @@ class Space(list):
                 "Space.{x_plus, x_minus, y_plus, y_minus} must required.")
         me = Space(self[:])
         distance = {
-            'yp': me - self.y_plus,
-            'ym': me - self.y_minus,
-            'xp': me - self.x_plus,
-            'xm': me - self.x_minus
+            'yp': self - self.y_plus,
+            'ym': self - self.y_minus,
+            'xp': self - self.x_plus,
+            'xm': self - self.x_minus
         }
-        return 0, 0
+        for k, v in distance.copy().items():
+            distance[k] = v.standard_deviation
+        x = distance['xp']
+        if distance['xm'] < distance['xp']:
+            x = -distance['xm']
+        y = distance['yp']
+        if distance['ym'] < distance['yp']:
+            y = -distance['ym']
+        return x, y
 
 
     def lcm(self, a, b):
         return (a * b) // gcd(a, b)
+
+
+    def interval_items(self):
+        for i, x in enumerate(self):
+            yield int(i * self.interval), x
 
 
     def __sub__(self, s):
@@ -100,11 +126,6 @@ class Space(list):
             object_ = self
         s = [abs(subject.get(x[0]) - x[1]) for x in object_.interval_items()]
         return DiffSpace(s)
-
-
-    def interval_items(self):
-        for i, x in enumerate(self):
-            yield int(i * self.interval), x
 
 
     def __repr__(self):
